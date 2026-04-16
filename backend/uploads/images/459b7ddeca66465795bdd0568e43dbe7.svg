@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop stop-color="#1f9d8b"/>
+      <stop offset="1" stop-color="#b7f3de"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#g)"/>
+  <rect y="620" width="1600" height="280" fill="#123f39"/>
+  <path d="M180 520h1240v120H180z" fill="#f8faf5"/>
+  <path d="M320 300h180v220H320zm260 0h180v220H580zm260 0h180v220H840zm260 0h180v220h-180z" fill="#fef1d6"/>
+  <path d="M210 250h1180v70H210z" fill="#0d5c63"/>
+  <circle cx="260" cy="170" r="84" fill="#d7fff1"/>
+  <path d="M1140 640c100-130 160-160 240-90v130h-240z" fill="#f79d65"/>
+  <text x="120" y="120" fill="#f5fffb" font-size="72" font-family="Arial, sans-serif" font-weight="700">Activity Preview</text>
+</svg>

@@ -1,0 +1,47 @@
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: association-manager
+  mvc:
+    static-path-pattern: /**
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/association_manager?zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:eent@123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
+  cache:
+    type: ehcache
+    ehcache:
+      config: classpath:ehcache.xml
+  jackson:
+    default-property-inclusion: non_null
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+logging:
+  level:
+    root: info
+    com.rabbiter.association: info
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:AssociationManagerSecretKeyAssociation2026}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:720}

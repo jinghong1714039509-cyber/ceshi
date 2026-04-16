@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop stop-color="#0f9bd7"/>
+      <stop offset="1" stop-color="#ddf4ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#g)"/>
+  <path d="M0 660h1600v240H0z" fill="#143b5c"/>
+  <path d="M240 280h1120v380H240z" fill="#f5fbff"/>
+  <path d="M300 340h220v220H300zm280 0h220v220H580zm280 0h220v220H860zm280 0h180v220h-180z" fill="#c9e7ff"/>
+  <path d="M680 210l120-120 120 120z" fill="#ff7b54"/>
+  <path d="M390 610h820v50H390z" fill="#ffcf70"/>
+  <text x="120" y="110" fill="#f7fcff" font-size="72" font-family="Arial, sans-serif" font-weight="700">Robotics Flash Show</text>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop stop-color="#f25f5c"/>
+      <stop offset="1" stop-color="#ffe7cc"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#g)"/>
+  <rect y="690" width="1600" height="210" fill="#5b2431"/>
+  <path d="M180 270h1240v420H180z" fill="#fff7ef"/>
+  <path d="M280 360h220v230H280zm280 0h220v230H560zm280 0h220v230H840zm280 0h220v230h-220z" fill="#ffd5a8"/>
+  <path d="M640 190h320v90H640z" fill="#7f5539"/>
+  <circle cx="1320" cy="150" r="84" fill="#fff0cf"/>
+  <text x="120" y="110" fill="#fffaf5" font-size="72" font-family="Arial, sans-serif" font-weight="700">Storytelling Forum</text>
+</svg>

@@ -1,0 +1,27 @@
+{
+  "name": "association-manager-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
+    "@fontsource-variable/outfit": "^5.2.8",
+    "@fontsource/noto-sans-sc": "^5.2.9",
+    "axios": "^1.15.0",
+    "element-plus": "^2.13.6",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.22",
+    "vue-router": "^4.6.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "typescript": "~5.6.3",
+    "vite": "^5.4.14",
+    "vue-tsc": "^2.1.10"
+  }
+}

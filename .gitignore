@@ -1,0 +1,7 @@
+backend/target/
+frontend/node_modules/
+original/frontend-vue2/node_modules/
+*.log
+*.class
+.idea/
+.vscode/
