@@ -1,22 +1,8 @@
-import http from './http'
+import { get } from './request'
+import type { ProfileOverview } from '../types/system'
 
-interface ApiResponse<T> {
-  code: number
-  msg: string
-  data: T
-}
+export type { ProfileOverview } from '../types/system'
 
-export interface ProfileOverview {
-  userId: string
-  userName: string
-  displayName: string
-  role: string
-  myClubs: any[]
-  myActivities: any[]
-  myApplications: any[]
-}
-
-export async function getProfileOverview() {
-  const response = await http.get<ApiResponse<ProfileOverview>>('/profile/overview')
-  return response.data
+export function getProfileOverview() {
+  return get<ProfileOverview>('/profile/overview')
 }

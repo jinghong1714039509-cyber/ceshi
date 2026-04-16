@@ -1,86 +1,32 @@
-import http from './http'
+import { get, post } from './request'
+import type { ForumFeed, ForumPost, LikeToggleResult } from '../types/forum'
 
-interface ApiResponse<T> {
-  code: number
-  msg: string
-  data: T
+export type { ForumComment, ForumFeed, ForumPost, ForumTopic, LikeToggleResult } from '../types/forum'
+
+export function getForumPosts() {
+  return get<ForumPost[]>('/forum/posts')
 }
 
-export interface ForumComment {
-  id: string
-  content: string
-  createTime: string
-  authorId: string
-  authorName: string
-  authorAvatar: string
-  authorRole: string
-  mine: boolean
+export function getPublicForumPosts() {
+  return get<ForumPost[]>('/public/forum/posts')
 }
 
-export interface ForumPost {
-  id: string
-  title: string
-  content: string
-  coverImage: string
-  createTime: string
-  authorId: string
-  authorName: string
-  authorAvatar: string
-  authorRole: string
-  topicTag: string
-  ownPost: boolean
-  liked: boolean
-  likeCount: number
-  commentCount: number
-  recentComments: ForumComment[]
+export function getForumFeed() {
+  return get<ForumFeed>('/forum/feed')
 }
 
-export interface ForumTopic {
-  topicTag: string
-  postCount: number
+export function getPublicForumFeed() {
+  return get<ForumFeed>('/public/forum/feed')
 }
 
-export interface ForumFeed {
-  posts: ForumPost[]
-  hotTopics: ForumTopic[]
+export function createForumPost(payload: { title?: string; content: string; coverImage?: string; topicTag?: string }) {
+  return post<null, { title?: string; content: string; coverImage?: string; topicTag?: string }>('/forum/posts', payload)
 }
 
-export interface LikeToggleResult {
-  liked: boolean
-  likeCount: number
+export function createForumComment(postId: string, payload: { content: string }) {
+  return post<null, { content: string }>(`/forum/posts/${postId}/comments`, payload)
 }
 
-export async function getForumPosts() {
-  const response = await http.get<ApiResponse<ForumPost[]>>('/forum/posts')
-  return response.data
-}
-
-export async function getPublicForumPosts() {
-  const response = await http.get<ApiResponse<ForumPost[]>>('/public/forum/posts')
-  return response.data
-}
-
-export async function getForumFeed() {
-  const response = await http.get<ApiResponse<ForumFeed>>('/forum/feed')
-  return response.data
-}
-
-export async function getPublicForumFeed() {
-  const response = await http.get<ApiResponse<ForumFeed>>('/public/forum/feed')
-  return response.data
-}
-
-export async function createForumPost(payload: { title?: string; content: string; coverImage?: string; topicTag?: string }) {
-  const response = await http.post<ApiResponse<null>>('/forum/posts', payload)
-  return response.data
-}
-
-export async function createForumComment(postId: string, payload: { content: string }) {
-  const response = await http.post<ApiResponse<null>>(`/forum/posts/${postId}/comments`, payload)
-  return response.data
-}
-
-export async function toggleForumLike(postId: string) {
-  const response = await http.post<ApiResponse<LikeToggleResult>>(`/forum/posts/${postId}/likes`)
-  return response.data
+export function toggleForumLike(postId: string) {
+  return post<LikeToggleResult>(`/forum/posts/${postId}/likes`)
 }

@@ -1,31 +1,25 @@
-import http from './http'
-import type { ActivitySummary } from './activity'
-import type { ClubSummary } from './club'
-import type { ForumPost } from './forum'
-import type { NoticeItem } from './notice'
+import { get } from './request'
+import type { ActivitySummary } from '../types/activity'
+import type { ClubSummary } from '../types/club'
+import type { ForumFeed, ForumPost } from '../types/forum'
+import type { NoticeItem } from '../types/system'
 
-interface ApiResponse<T> {
-  code: number
-  msg: string
-  data: T
+export function getPublicNotices() {
+  return get<NoticeItem[]>('/public/notices')
 }
 
-export async function getPublicNotices() {
-  const response = await http.get<ApiResponse<NoticeItem[]>>('/public/notices')
-  return response.data
+export function getPublicClubs() {
+  return get<ClubSummary[]>('/public/clubs')
 }
 
-export async function getPublicClubs() {
-  const response = await http.get<ApiResponse<ClubSummary[]>>('/public/clubs')
-  return response.data
+export function getPublicActivities() {
+  return get<ActivitySummary[]>('/public/activities')
 }
 
-export async function getPublicActivities() {
-  const response = await http.get<ApiResponse<ActivitySummary[]>>('/public/activities')
-  return response.data
+export function getPublicForumPosts() {
+  return get<ForumPost[]>('/public/forum/posts')
 }
 
-export async function getPublicForumPosts() {
-  const response = await http.get<ApiResponse<ForumPost[]>>('/public/forum/posts')
-  return response.data
+export function getPublicForumFeed() {
+  return get<ForumFeed>('/public/forum/feed')
 }

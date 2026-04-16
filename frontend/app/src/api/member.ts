@@ -1,30 +1,12 @@
-import http from './http'
+import { del, get } from './request'
+import type { MemberItem } from '../types/system'
 
-interface ApiResponse<T> {
-  code: number
-  msg: string
-  data: T
+export type { MemberItem } from '../types/system'
+
+export function getMembers() {
+  return get<MemberItem[]>('/members')
 }
 
-export interface MemberItem {
-  id: string
-  createTime: string
-  teamId: string
-  teamName: string
-  userId: string
-  userName: string
-  userGender: string
-  userAge: number | null
-  userPhone: string
-  manager: boolean
-}
-
-export async function getMembers() {
-  const response = await http.get<ApiResponse<MemberItem[]>>('/members')
-  return response.data
-}
-
-export async function removeMember(memberId: string) {
-  const response = await http.delete<ApiResponse<null>>(`/members/${memberId}`)
-  return response.data
+export function removeMember(memberId: string) {
+  return del<null>(`/members/${memberId}`)
 }

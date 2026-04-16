@@ -1,4 +1,16 @@
-import axios from 'axios'
+import axios, { type AxiosError } from 'axios'
+import { ElMessage } from 'element-plus'
+import type { ApiResponse, BackendApiResponse } from '../types/common'
+import { clearStoredSession, getStorageKey } from '../utils/storage'
+
+function normalizeResponse<T>(payload: BackendApiResponse<T>): ApiResponse<T> {
+  return {
+    code: payload.code,
+    data: payload.data,
+    message: payload.message ?? payload.msg ?? '',
+    msg: payload.msg ?? payload.message ?? '',
+  }
+}
 
 const http = axios.create({
   baseURL: '/api',
@@ -7,7 +19,7 @@ const http = axios.create({
 })
 
 http.interceptors.request.use((config) => {
-  const token = localStorage.getItem('association-token')
+  const token = localStorage.getItem(getStorageKey('token'))
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -15,17 +27,27 @@ http.interceptors.request.use((config) => {
 })
 
 http.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('association-token')
-      window.location.href = '/login'
-    }
+  (response) => normalizeResponse(response.data) as never,
+  (error: AxiosError<BackendApiResponse<unknown>>) => {
+    const status = error.response?.status
+    const responseMessage = error.response?.data?.message ?? error.response?.data?.msg
 
-    if (error.code === 'ECONNABORTED') {
-      error.message = '请求超时，请检查后端服务或稍后重试'
+    if (status === 401) {
+      clearStoredSession()
+      ElMessage.error(responseMessage || '登录状态已失效，请重新登录')
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
+    } else if (status === 403) {
+      ElMessage.error(responseMessage || '当前账号没有权限执行此操作')
+    } else if (status === 500) {
+      ElMessage.error(responseMessage || '服务异常，请稍后再试')
+    } else if (error.code === 'ECONNABORTED') {
+      ElMessage.error('请求超时，请检查服务状态后重试')
     } else if (error.code === 'ERR_NETWORK') {
-      error.message = '网络连接失败，请确认前后端服务已启动'
+      ElMessage.error('网络连接失败，服务当前不可用')
+    } else if (responseMessage) {
+      ElMessage.error(responseMessage)
     }
 
     return Promise.reject(error)

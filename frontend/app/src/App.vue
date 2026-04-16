@@ -6,21 +6,21 @@
 
     <template v-else>
       <aside class="app-sidebar">
-        <div class="app-brand" @click="router.push(session.isAuthenticated ? '/forum' : '/explore')">
-          <span class="app-brand__mark">Campus Clubs</span>
-          <strong>校园社团</strong>
+        <div class="app-brand" @click="router.push(homePath)">
+          <span class="app-brand__mark">{{ APP_NAME }}</span>
+          <strong>{{ APP_TITLE }}</strong>
         </div>
 
         <nav class="app-nav">
           <button
-            v-for="item in visibleNavigation"
+            v-for="item in visibleMenus"
             :key="item.path"
             type="button"
             :class="['app-nav__item', { 'app-nav__item--active': isActive(item.path) }]"
             @click="handleNavigation(item.path)"
           >
-            <el-icon><component :is="item.icon" /></el-icon>
-            <span>{{ item.label }}</span>
+            <el-icon><component :is="getIconComponent(item.icon, item.name)" /></el-icon>
+            <span>{{ item.title }}</span>
           </button>
         </nav>
 
@@ -57,7 +57,7 @@
 
               <div class="account-panel__actions">
                 <el-button :loading="avatarUploading" plain @click="avatarInput?.click()">上传头像</el-button>
-                <el-button plain @click="router.push('/profile')">我的空间</el-button>
+                <el-button v-permission="'club:space'" plain @click="router.push('/profile')">我的空间</el-button>
                 <el-button type="danger" plain @click="logout">退出登录</el-button>
               </div>
             </div>
@@ -73,12 +73,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { updateAvatar, uploadAvatar } from './api/auth'
-import { getPageTitle, getRoleLabel, getVisibleNavigation } from './app-shell'
+import {
+  APP_NAME,
+  APP_TITLE,
+  PUBLIC_ROUTE_NAMES,
+  getAvatarText,
+  getDefaultLandingPath,
+  getHeaderTitle,
+  getIconComponent,
+  getVisibleMenus,
+} from './app-shell'
 import { useSessionStore } from './stores/session'
+import { getRoleLabel } from './utils/access'
 
 const route = useRoute()
 const router = useRouter()
@@ -86,20 +96,21 @@ const session = useSessionStore()
 const avatarInput = ref<HTMLInputElement | null>(null)
 const avatarUploading = ref(false)
 
-const publicRouteNames = ['login', 'register', 'explore']
-
-const isPublicPage = computed(() => publicRouteNames.includes(String(route.name ?? '')))
-const visibleNavigation = computed(() => getVisibleNavigation(session.role))
+const isPublicPage = computed(() => PUBLIC_ROUTE_NAMES.includes(String(route.name ?? '')))
+const visibleMenus = computed(() => getVisibleMenus(session.menus))
 const roleLabel = computed(() => getRoleLabel(session.role))
-const pageTitle = computed(() => getPageTitle(route.path, session.role))
-const avatarText = computed(() => session.displayName.trim().slice(0, 1).toUpperCase() || 'U')
+const pageTitle = computed(() => getHeaderTitle(String(route.meta.title ?? '')))
+const avatarText = computed(() => getAvatarText(session.displayName))
+const homePath = computed(() => getDefaultLandingPath(session.role))
 
 function isActive(path: string) {
-  return route.path === path || (path === '/' && route.path === '/' && session.role !== 'student')
+  return route.path === path || route.path.startsWith(`${path}/`)
 }
 
 function handleNavigation(path: string) {
-  router.push(path)
+  if (route.path !== path) {
+    router.push(path)
+  }
 }
 
 async function handleAvatarChange(event: Event) {
@@ -110,10 +121,12 @@ async function handleAvatarChange(event: Event) {
   try {
     avatarUploading.value = true
     const uploadResult = await uploadAvatar(file)
-    if (uploadResult.code !== 0) throw new Error(uploadResult.msg)
+    if (uploadResult.code !== 0) throw new Error(uploadResult.message)
+
     const saveResult = await updateAvatar(uploadResult.data.url)
-    if (saveResult.code !== 0) throw new Error(saveResult.msg)
-    session.setAvatar(saveResult.data.avatarUrl)
+    if (saveResult.code !== 0) throw new Error(saveResult.message)
+
+    session.setAvatar(saveResult.data.avatarUrl || '')
     ElMessage.success('头像更新成功')
   } catch (error: any) {
     ElMessage.error(error?.response?.data?.msg || error?.message || '头像更新失败')
@@ -127,6 +140,17 @@ function logout() {
   session.clearSession()
   router.push('/login')
 }
+
+onMounted(async () => {
+  if (session.isAuthenticated && !session.initialized) {
+    try {
+      await session.bootstrapSession()
+    } catch {
+      session.clearSession()
+      router.push('/login')
+    }
+  }
+})
 </script>
 
 <style scoped>

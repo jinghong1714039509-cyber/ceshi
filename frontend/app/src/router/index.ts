@@ -1,53 +1,79 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { getDefaultLandingPath } from '../app-shell'
 import { useSessionStore } from '../stores/session'
-import ActivitiesView from '../views/ActivitiesView.vue'
-import ActivityDetailView from '../views/ActivityDetailView.vue'
-import ClubApplicationsView from '../views/ClubApplicationsView.vue'
-import ClubDetailView from '../views/ClubDetailView.vue'
-import ClubsView from '../views/ClubsView.vue'
-import ClubSpaceView from '../views/ClubSpaceView.vue'
-import DashboardView from '../views/DashboardView.vue'
-import ExploreView from '../views/ExploreView.vue'
-import ForumView from '../views/ForumView.vue'
-import LoginView from '../views/LoginView.vue'
-import MessagesView from '../views/MessagesView.vue'
-import MembersView from '../views/MembersView.vue'
-import NoticesView from '../views/NoticesView.vue'
-import ProfileView from '../views/ProfileView.vue'
-import RegisterView from '../views/RegisterView.vue'
-import UsersView from '../views/UsersView.vue'
+import { hasPermission, hasRole } from '../utils/access'
+import { activityRoutes } from './modules/activity'
+import { approvalRoutes } from './modules/approval'
+import { authRoutes } from './modules/auth'
+import { clubRoutes } from './modules/club'
+import { communityRoutes } from './modules/community'
+import { dashboardRoutes } from './modules/dashboard'
+import { publicRoutes } from './modules/public'
+import { systemRoutes } from './modules/system'
+
+const routes: RouteRecordRaw[] = [
+  ...dashboardRoutes,
+  ...authRoutes,
+  ...publicRoutes,
+  ...clubRoutes,
+  ...activityRoutes,
+  ...approvalRoutes,
+  ...communityRoutes,
+  ...systemRoutes,
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/',
+    meta: {
+      title: '页面跳转',
+      module: 'system',
+      hidden: true,
+    },
+  },
+]
+
+export function getAppRoutes() {
+  return routes
+}
 
 const router = createRouter({
   history: createWebHistory(),
-  routes: [
-    { path: '/', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true } },
-    { path: '/clubs', name: 'clubs', component: ClubsView, meta: { requiresAuth: true } },
-    { path: '/clubs/:clubId', name: 'club-detail', component: ClubDetailView, meta: { requiresAuth: true } },
-    { path: '/clubs/:clubId/space', name: 'club-space', component: ClubSpaceView, meta: { requiresAuth: true } },
-    { path: '/join-applications', name: 'join-applications', component: ClubApplicationsView, meta: { requiresAuth: true } },
-    { path: '/activities', name: 'activities', component: ActivitiesView, meta: { requiresAuth: true } },
-    { path: '/activities/:activityId', name: 'activity-detail', component: ActivityDetailView, meta: { requiresAuth: true } },
-    { path: '/forum', name: 'forum', component: ForumView, meta: { requiresAuth: true } },
-    { path: '/messages', name: 'messages', component: MessagesView, meta: { requiresAuth: true } },
-    { path: '/members', name: 'members', component: MembersView, meta: { requiresAuth: true } },
-    { path: '/notices', name: 'notices', component: NoticesView, meta: { requiresAuth: true } },
-    { path: '/login', name: 'login', component: LoginView },
-    { path: '/register', name: 'register', component: RegisterView },
-    { path: '/users', name: 'users', component: UsersView, meta: { requiresAuth: true } },
-    { path: '/explore', name: 'explore', component: ExploreView },
-    { path: '/profile', name: 'profile', component: ProfileView, meta: { requiresAuth: true } },
-  ],
+  routes,
+  scrollBehavior: () => ({ top: 0 }),
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const session = useSessionStore()
 
-  if (to.meta.requiresAuth && !session.isAuthenticated) {
-    return { name: 'login' }
+  document.title = `${to.meta.title ?? '校园社团'} | Campus Clubs`
+
+  if (session.isAuthenticated && !session.initialized && to.name !== 'login') {
+    try {
+      await session.bootstrapSession()
+    } catch {
+      session.clearSession()
+      if (to.meta.requiresAuth) {
+        return { name: 'login', query: { redirect: to.fullPath } }
+      }
+    }
   }
 
-  if (to.name === 'login' && session.isAuthenticated) {
-    return { name: 'dashboard' }
+  if (to.meta.requiresAuth && !session.isAuthenticated) {
+    return { name: 'login', query: { redirect: to.fullPath } }
+  }
+
+  if ((to.name === 'login' || to.name === 'register') && session.isAuthenticated) {
+    return getDefaultLandingPath(session.role)
+  }
+
+  if (to.meta.roles?.length && !hasRole(session.roles, to.meta.roles)) {
+    ElMessage.warning('当前账号无权访问该页面')
+    return getDefaultLandingPath(session.role)
+  }
+
+  if (to.meta.permissions?.length && !hasPermission(session.permissions, to.meta.permissions)) {
+    ElMessage.warning('当前账号缺少页面权限')
+    return getDefaultLandingPath(session.role)
   }
 
   return true

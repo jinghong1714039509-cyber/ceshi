@@ -1,64 +1,74 @@
 import type { Component } from 'vue'
 import {
+  Bell,
   Calendar,
   ChatDotRound,
   Collection,
+  DataBoard,
   EditPen,
   House,
   Message,
   Setting,
   UserFilled,
 } from '@element-plus/icons-vue'
+import type { MenuItem } from './types/common'
+import { getRoleLabel } from './utils/access'
 
-export type AppRole = 'super-admin' | 'club-admin' | 'teacher-admin' | 'student' | 'guest' | string
+export const APP_NAME = 'Campus Clubs'
+export const APP_TITLE = '校园社团'
 
-export interface NavigationItem {
-  label: string
-  path: string
-  icon: Component
-  roles?: AppRole[]
+export const PUBLIC_ROUTE_NAMES = ['login', 'register', 'explore']
+
+const MENU_ICON_MAP: Record<string, Component> = {
+  dashboard: House,
+  forum: EditPen,
+  activities: Calendar,
+  clubs: Collection,
+  profile: ChatDotRound,
+  messages: Message,
+  notices: Bell,
+  members: UserFilled,
+  users: Setting,
+  approvals: DataBoard,
 }
 
-export const navigationItems: NavigationItem[] = [
-  { label: '总览', path: '/', icon: House, roles: ['super-admin', 'club-admin', 'teacher-admin'] },
-  { label: '论坛', path: '/forum', icon: EditPen },
-  { label: '活动', path: '/activities', icon: Calendar },
-  { label: '社团', path: '/clubs', icon: Collection },
-  { label: '社团空间', path: '/profile', icon: ChatDotRound },
-  { label: '消息', path: '/messages', icon: Message },
-  { label: '成员', path: '/members', icon: UserFilled, roles: ['super-admin', 'club-admin', 'teacher-admin'] },
-  { label: '用户', path: '/users', icon: Setting, roles: ['super-admin'] },
-]
+const ROUTE_ICON_ALIAS: Record<string, keyof typeof MENU_ICON_MAP> = {
+  house: 'dashboard',
+  editpen: 'forum',
+  calendar: 'activities',
+  collection: 'clubs',
+  chatdotround: 'profile',
+  message: 'messages',
+  bell: 'notices',
+  userfilled: 'members',
+  setting: 'users',
+  databoard: 'approvals',
+}
 
-export function getVisibleNavigation(role: AppRole) {
-  const managerRoles = ['super-admin', 'club-admin', 'teacher-admin']
-  if (managerRoles.includes(role)) {
-    return navigationItems.filter((item) => !item.roles || item.roles.includes(role))
+export function getIconComponent(icon?: string, fallback = 'dashboard') {
+  if (!icon) {
+    return MENU_ICON_MAP[fallback] ?? House
   }
-  return navigationItems.filter((item) => ['/forum', '/activities', '/clubs', '/profile', '/messages'].includes(item.path))
+
+  const normalized = icon.replace(/[-_\s]/g, '').toLowerCase()
+  const alias = ROUTE_ICON_ALIAS[normalized] ?? normalized
+  return MENU_ICON_MAP[alias] ?? MENU_ICON_MAP[fallback] ?? House
 }
 
-export function getRoleLabel(role: AppRole) {
-  switch (role) {
-    case 'super-admin':
-      return '系统管理员'
-    case 'club-admin':
-      return '社团管理员'
-    case 'teacher-admin':
-      return '指导教师'
-    case 'student':
-      return '学生用户'
-    default:
-      return '访客'
-  }
+export function getAvatarText(displayName: string) {
+  return displayName.trim().slice(0, 1).toUpperCase() || 'U'
 }
 
-export function getPageTitle(path: string, role?: AppRole) {
-  if (path.startsWith('/clubs/') && path.endsWith('/space')) return '社团空间'
-  if (path.startsWith('/clubs/')) return '社团详情'
-  if (path.startsWith('/activities/')) return '活动详情'
-  if (path === '/' && role === 'student') return '论坛'
-
-  const matched = navigationItems.find((item) => item.path === path)
-  return matched?.label ?? '校园社团'
+export function getDefaultLandingPath(role: string) {
+  return ['super-admin', 'club-admin', 'teacher-admin'].includes(role) ? '/' : '/forum'
 }
+
+export function getHeaderTitle(routeTitle?: string) {
+  return routeTitle || APP_TITLE
+}
+
+export function getVisibleMenus(menus: MenuItem[]) {
+  return menus.filter((item) => !item.hidden)
+}
+
+export { getRoleLabel }

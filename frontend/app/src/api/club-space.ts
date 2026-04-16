@@ -1,54 +1,16 @@
-import http from './http'
-import type { ActivitySummary } from './activity'
-import type { NoticeItem } from './notice'
+import { get, post } from './request'
+import type { ClubSpace } from '../types/club'
 
-interface ApiResponse<T> {
-  code: number
-  msg: string
-  data: T
+export type { ClubSpace, ClubMessage, ClubPost } from '../types/club'
+
+export function getClubSpace(clubId: string) {
+  return get<ClubSpace>(`/clubs/${clubId}/space`)
 }
 
-export interface ClubPost {
-  id: string
-  title: string
-  content: string
-  pinned: boolean
-  createTime: string
-  authorName: string
+export function createClubPost(clubId: string, payload: { title: string; content: string }) {
+  return post<null, { title: string; content: string }>(`/clubs/${clubId}/space/posts`, payload)
 }
 
-export interface ClubMessage {
-  id: string
-  authorId: string
-  content: string
-  createTime: string
-  authorName: string
-}
-
-export interface ClubSpace {
-  clubId: string
-  clubName: string
-  category: string
-  managerName: string
-  memberCount: number
-  canManage: boolean
-  activities: ActivitySummary[]
-  notices: NoticeItem[]
-  posts: ClubPost[]
-  messages: ClubMessage[]
-}
-
-export async function getClubSpace(clubId: string) {
-  const response = await http.get<ApiResponse<ClubSpace>>(`/clubs/${clubId}/space`)
-  return response.data
-}
-
-export async function createClubPost(clubId: string, payload: { title: string; content: string }) {
-  const response = await http.post<ApiResponse<null>>(`/clubs/${clubId}/space/posts`, payload)
-  return response.data
-}
-
-export async function createClubMessage(clubId: string, payload: { content: string }) {
-  const response = await http.post<ApiResponse<null>>(`/clubs/${clubId}/space/messages`, payload)
-  return response.data
+export function createClubMessage(clubId: string, payload: { content: string }) {
+  return post<null, { content: string }>(`/clubs/${clubId}/space/messages`, payload)
 }

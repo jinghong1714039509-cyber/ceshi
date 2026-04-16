@@ -50,13 +50,16 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { login } from '../api/auth'
 import { getPublicActivities, type ActivitySummary } from '../api/activity'
 import { pickDefaultCover } from '../content/default-covers'
 import { useSessionStore } from '../stores/session'
+import { getDefaultLandingPath } from '../app-shell'
+import { getPermissionsByRole } from '../utils/access'
 
+const route = useRoute()
 const router = useRouter()
 const session = useSessionStore()
 const submitting = ref(false)
@@ -98,9 +101,12 @@ async function handleLogin() {
     })
 
     if (result.code !== 0) {
-      ElMessage.error(result.msg || '登录失败')
+      ElMessage.error(result.message || '登录失败')
       return
     }
+
+    const roles = result.data.role ? [result.data.role] : []
+    const permissions = getPermissionsByRole(result.data.role)
 
     session.setSession(
       result.data.token,
@@ -108,9 +114,17 @@ async function handleLogin() {
       result.data.role,
       result.data.displayName || result.data.userName,
       result.data.avatarUrl || '',
+      roles,
+      permissions,
+      [],
     )
+
+    await session.bootstrapSession()
+
     ElMessage.success('登录成功')
-    router.push('/')
+
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
+    router.push(redirect || getDefaultLandingPath(result.data.role))
   } catch (error: any) {
     ElMessage.error(error?.response?.data?.msg || error?.message || '登录失败')
   } finally {

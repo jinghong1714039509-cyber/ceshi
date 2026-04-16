@@ -1,78 +1,36 @@
-import http from './http'
+import { del, get, post } from './request'
+import type { ClubDetail, ClubSummary, JoinApplication } from '../types/club'
 
-interface ApiResponse<T> {
-  code: number
-  msg: string
-  data: T
+export type { ClubDetail, ClubSummary, JoinApplication } from '../types/club'
+
+export function getClubs() {
+  return get<ClubSummary[]>('/clubs')
 }
 
-export interface ClubSummary {
-  id: string
-  name: string
-  category: string
-  managerId: string
-  managerName: string
-  totalMembers: number
-  createdAt: string
-  joined: boolean
-  pendingApproval: boolean
-  canManage: boolean
-  canEnterSpace: boolean
+export function getClubDetail(clubId: string) {
+  return get<ClubDetail>(`/clubs/${clubId}`)
 }
 
-export interface ClubDetail extends ClubSummary {
-  activities: import('./activity').ActivitySummary[]
-  notices: import('./notice').NoticeItem[]
+export function getPublicClubs() {
+  return get<ClubSummary[]>('/public/clubs')
 }
 
-export interface JoinApplication {
-  id: string
-  status: number
-  statusLabel: string
-  createdAt: string
-  clubId: string
-  clubName: string
-  applicantId: string
-  applicantName: string
-  applicantPhone: string
+export function joinClub(clubId: string) {
+  return post<null>(`/clubs/${clubId}/join`)
 }
 
-export async function getClubs() {
-  const response = await http.get<ApiResponse<ClubSummary[]>>('/clubs')
-  return response.data
+export function getMyApplications() {
+  return get<JoinApplication[]>('/join-applications/mine')
 }
 
-export async function getClubDetail(clubId: string) {
-  const response = await http.get<ApiResponse<ClubDetail>>(`/clubs/${clubId}`)
-  return response.data
+export function withdrawApplication(applicationId: string) {
+  return del<null>(`/join-applications/${applicationId}`)
 }
 
-export async function getPublicClubs() {
-  const response = await http.get<ApiResponse<ClubSummary[]>>('/public/clubs')
-  return response.data
+export function getManagedApplications() {
+  return get<JoinApplication[]>('/admin/join-applications')
 }
 
-export async function joinClub(clubId: string) {
-  const response = await http.post<ApiResponse<null>>(`/clubs/${clubId}/join`)
-  return response.data
-}
-
-export async function getMyApplications() {
-  const response = await http.get<ApiResponse<JoinApplication[]>>('/join-applications/mine')
-  return response.data
-}
-
-export async function withdrawApplication(applicationId: string) {
-  const response = await http.delete<ApiResponse<null>>(`/join-applications/${applicationId}`)
-  return response.data
-}
-
-export async function getManagedApplications() {
-  const response = await http.get<ApiResponse<JoinApplication[]>>('/admin/join-applications')
-  return response.data
-}
-
-export async function approveApplication(applicationId: string) {
-  const response = await http.post<ApiResponse<null>>(`/admin/join-applications/${applicationId}/approve`)
-  return response.data
+export function approveApplication(applicationId: string) {
+  return post<null>(`/admin/join-applications/${applicationId}/approve`)
 }
